@@ -1,0 +1,38 @@
+﻿@page "/counter"
+@using BitMiracle.Docotic.Pdf
+
+@* @code {
+    public class PdfToImageHandler
+    {
+        private readonly IJSRuntime JS;
+
+        public PdfToImageHandler(IJSRuntime jsRuntime)
+        {
+            JS = jsRuntime;
+        }
+
+        public async Task ConvertAndRenderPdfPageAsync(string pdfFilePath, string uid)
+        {
+            using (var pdf = new PdfDocument(pdfFilePath))
+            {
+                PdfDrawOptions options = PdfDrawOptions.Create();
+                options.BackgroundColor = new PdfRgbColor(255, 255, 255);
+                options.HorizontalResolution = 300;
+                options.VerticalResolution = 300;
+
+                using (var memoryStream = new MemoryStream())
+                {
+                    pdf.Pages[0].Save(memoryStream, options, PdfImageFormat.Png);
+
+                    var base64String = Convert.ToBase64String(memoryStream.ToArray());
+
+                    await JS.InvokeAsync<object>(
+                        "renderImage",
+                        base64String
+                    );
+                }
+            }
+        }
+    }
+}
+ *@
