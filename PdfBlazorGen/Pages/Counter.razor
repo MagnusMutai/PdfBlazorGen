@@ -1,38 +1,30 @@
 ﻿@page "/counter"
 @using BitMiracle.Docotic.Pdf
 
-@* @code {
-    public class PdfToImageHandler
+@inject IJSRuntime JSRuntime
+
+<button class="btn btn-primary" @onclick="GenerateAndOpenPdf">Generate and Open PDF</button>
+
+@code {
+
+    private async Task GenerateAndOpenPdf()
     {
-        private readonly IJSRuntime JS;
+        var pdfBytes = GeneratePdf();
+        var base64String = Convert.ToBase64String(pdfBytes);
+        var dataUri = $"data:application/pdf;base64,{base64String}";
+        await JSRuntime.InvokeVoidAsync("openInNewTab", dataUri);
+    }
 
-        public PdfToImageHandler(IJSRuntime jsRuntime)
+
+    public byte[] GeneratePdf()
+    {
+        using (var memoryStream = new MemoryStream())
+        using (PdfDocument pdf = new PdfDocument())
         {
-            JS = jsRuntime;
-        }
-
-        public async Task ConvertAndRenderPdfPageAsync(string pdfFilePath, string uid)
-        {
-            using (var pdf = new PdfDocument(pdfFilePath))
-            {
-                PdfDrawOptions options = PdfDrawOptions.Create();
-                options.BackgroundColor = new PdfRgbColor(255, 255, 255);
-                options.HorizontalResolution = 300;
-                options.VerticalResolution = 300;
-
-                using (var memoryStream = new MemoryStream())
-                {
-                    pdf.Pages[0].Save(memoryStream, options, PdfImageFormat.Png);
-
-                    var base64String = Convert.ToBase64String(memoryStream.ToArray());
-
-                    await JS.InvokeAsync<object>(
-                        "renderImage",
-                        base64String
-                    );
-                }
-            }
+            pdf.Pages[0].Canvas.DrawString(10, 50, "Hello, world!");
+            pdf.Save(memoryStream);
+            return memoryStream.ToArray();
         }
     }
+    
 }
- *@
